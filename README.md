@@ -46,10 +46,8 @@ private void button1_Click(object sender, EventArgs e)
 	ve.Run("ipconfig");
 }
 ```
-
-==============================================================================
-*FOR WPF APPLICATIONS*
-==============================================================================
+For WPF Applications
+---------------------
 Replace Invoke & Invoke with Dispatcher.CheckAccess() & Dispatcher.Invoke
 
 ```c#
