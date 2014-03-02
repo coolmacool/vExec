@@ -36,6 +36,7 @@
     <Reference Include="System.Management" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="NetConnect.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="vExecUtil.cs" />
   </ItemGroup>
