@@ -4,15 +4,15 @@ vExec
 proof of concept
 
 Initial work on a C# WMI port for interactive remote command execution
--Allows running of net use command with network resources available to logged on user 
 
---------------------
+Allows running of net use command with network resources available to logged on user 
+
+
 Example
 --------------------
 
 
-
-
+```c#
 //Instantiation
 vExec ve = new vExec("MACHINEADDRESS", "username", "password");
 
@@ -40,10 +40,19 @@ private void SetOutput(string output)
 	}
 }
 
+//Method to begin remote command execution
+private void button1_Click(object sender, EventArgs e)
+{      
+	ve.Run("ipconfig");
+}
+```
+
 ==============================================================================
 *FOR WPF APPLICATIONS*
+==============================================================================
 Replace Invoke & Invoke with Dispatcher.CheckAccess() & Dispatcher.Invoke
 
+```c#
 if (!Dispatcher.CheckAccess())
 {
 	Dispatcher.Invoke(new outputDelegate(SetOutput), new object[] { output });
@@ -52,10 +61,5 @@ else
 {
 	txtOutput.Text = output;
 }
-==============================================================================
 
-//Method to begin remote command execution
-private void button1_Click(object sender, EventArgs e)
-{      
-	ve.Run("ipconfig");
-}
+```
