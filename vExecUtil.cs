@@ -149,7 +149,8 @@ namespace vExecUtil
             catch(Exception e)
             {
                 //UpdateOutput("There was a problem connecting to remote machine.\r\n" + e.Message);
-                MessageBox(new IntPtr(), "There was a problem connecting to remote machine.\r\n" + e.Message, "Error", 0);
+                //MessageBox(new IntPtr(), "There was a problem connecting to remote machine.\r\n" + e.Message, "Error", 0);
+                throw new ApplicationException(e.Message);
             }
         }
 
@@ -196,7 +197,8 @@ namespace vExecUtil
             catch (Exception e)
             {
                 //UpdateOutput("There was a problem sending command to remote machine.\r\n" + e.Message);
-                MessageBox(new IntPtr(), "There was a problem sending command to remote machine.\r\n" + e.Message, "Error", 0);
+                //MessageBox(new IntPtr(), "There was a problem sending command to remote machine.\r\n" + e.Message, "Error", 0);
+                throw new ApplicationException(e.Message);
             }
         }
 
@@ -213,6 +215,7 @@ namespace vExecUtil
             {
                 //UpdateOutput("An Error has occurred.\r\n" + e.Message);
                 MessageBox(new IntPtr(), "An Error has occurred.\r\n" + e.Message, "Error", 0);
+                return;
             }
         }
 
@@ -235,14 +238,23 @@ namespace vExecUtil
             catch (Exception e)
             {
                 //UpdateOutput("An Error has occurred.\r\n" + e.Message);
-                MessageBox(new IntPtr(), "An Error has occurred during cleanup.\r\n" + e.Message, "Error", 0);
+                //MessageBox(new IntPtr(), "An Error has occurred during cleanup.\r\n" + e.Message, "Error", 0);
+                throw new ApplicationException(e.Message);
             }
         }
 
         private void worker_DoWork(object sender, DoWorkEventArgs e)
         {
-            ConnectWMI();
-            LaunchRemoteProcess();
+            try
+            {
+                ConnectWMI();
+                LaunchRemoteProcess();
+            }
+            catch (Exception ex)
+            {
+                MessageBox(new IntPtr(), "An Error has occurred.\r\n" + ex.Message, "Error", 0);
+                return;
+            }
         }
 
         private void UpdateOutput(string updatedOutput, bool resetOutput = false)
