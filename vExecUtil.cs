@@ -66,21 +66,29 @@ namespace vExecUtil
         // Delegate for command output file creation event to read file
         protected virtual void OnOutputCreated(object sender, FileSystemEventArgs e)
         {
-            if (e.Name == CmdTempFileName)
+            try
             {
-                string buffer = "";
-                using (StreamReader sr = new StreamReader(_remotePath + @"\" + CmdTempFileName))
+                if (e.Name == CmdTempFileName)
                 {
-                    string line;
-                    while ((line = sr.ReadLine()) != null)
+                    string buffer = "";
+                    using (StreamReader sr = new StreamReader(_remotePath + @"\" + CmdTempFileName))
                     {
-                        buffer += line + "\r\n";
+                        string line;
+                        while ((line = sr.ReadLine()) != null)
+                        {
+                            buffer += line + "\r\n";
+                        }
                     }
-                }
 
-                UpdateOutput(buffer);
-                
-                CleanUp();
+                    UpdateOutput(buffer);
+
+                    CleanUp();
+                }
+            }
+            catch(Exception ex)
+            {
+                MessageBox(new IntPtr(), "An Error has occurred.\r\n" + ex.Message, "Error", 0);
+                return;
             }
         }
 
@@ -224,9 +232,9 @@ namespace vExecUtil
             try
             {
                 // Cleanup objects and temporary files
-                _mgmt.Dispose();
-                _watch.Dispose();
-                _worker.Dispose();
+                //_mgmt.Dispose();
+                //_watch.Dispose();
+                //_worker.Dispose();
 
                 if (File.Exists(_remotePath + @"\" + CmdTempFileName))
                     File.Delete(_remotePath + @"\" + CmdTempFileName);
@@ -238,8 +246,9 @@ namespace vExecUtil
             catch (Exception e)
             {
                 //UpdateOutput("An Error has occurred.\r\n" + e.Message);
-                //MessageBox(new IntPtr(), "An Error has occurred during cleanup.\r\n" + e.Message, "Error", 0);
-                throw new ApplicationException(e.Message);
+                MessageBox(new IntPtr(), "An Error has occurred during cleanup.\r\n" + e.Message, "Error", 0);
+                return;
+                //throw new ApplicationException(e.Message);
             }
         }
 
