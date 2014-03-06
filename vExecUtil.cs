@@ -1,14 +1,17 @@
-﻿using System;
-using System.ComponentModel;
-using System.IO;
-using System.Management;
-using System.Runtime.InteropServices;
-using System.Threading;
-
 namespace vExecUtil
 {
+    using System;
+    using System.ComponentModel;
+    using System.IO;
+    using System.Management;
+    using System.Runtime.InteropServices;
+    using System.Threading;
+
     public class vExec
     {
+        [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+        private static extern int MessageBox(IntPtr hWnd, String text, String caption, uint type);
+
         /**************
          * CONSTANTS
          *************/
@@ -30,9 +33,6 @@ namespace vExecUtil
         private ManagementBaseObject _outParams;
         private FileSystemWatcher _watch;
         private BackgroundWorker _worker;
-
-        [DllImport("user32.dll", CharSet = CharSet.Unicode)]
-        private static extern int MessageBox(IntPtr hWnd, String text, String caption, uint type);
 
         /**************
         * CONSTRUCTORS
@@ -81,13 +81,13 @@ namespace vExecUtil
                     }
 
                     UpdateOutput(buffer);
-
+                    OnCmdFinished(EventArgs.Empty);
                     CleanUp();
                 }
             }
             catch(Exception ex)
             {
-                MessageBox(new IntPtr(), "An Error has occurred.\r\n" + ex.Message, "Error", 0);
+                MessageBox(IntPtr.Zero, "An Error has occurred.\r\n" + ex.Message, "Error", 0);
                 return;
             }
         }
@@ -99,11 +99,18 @@ namespace vExecUtil
                 OutputUpdated(this, e);
         }
 
+        // Notify command has finished
+        protected void OnCmdFinished(EventArgs e)
+        {
+            if (CmdFinished != null)
+                CmdFinished(this, e);
+        }
 
         /**************
         * EVENTS
         **************/
         public event EventHandler OutputUpdated;
+        public event EventHandler CmdFinished;
 
 
         /**************
@@ -147,7 +154,7 @@ namespace vExecUtil
                 {
                     Path = _remotePath,
                     Filter = "*.tmp",
-                    NotifyFilter = NotifyFilters.FileName | NotifyFilters.DirectoryName | NotifyFilters.CreationTime | NotifyFilters.LastWrite,
+                    NotifyFilter = NotifyFilters.FileName | NotifyFilters.DirectoryName | NotifyFilters.CreationTime | NotifyFilters.LastWrite | NotifyFilters.LastAccess,
                     EnableRaisingEvents = true
                 };
                 _watch.Changed += new FileSystemEventHandler(OnOutputCreated);
@@ -156,8 +163,6 @@ namespace vExecUtil
             }
             catch(Exception e)
             {
-                //UpdateOutput("There was a problem connecting to remote machine.\r\n" + e.Message);
-                //MessageBox(new IntPtr(), "There was a problem connecting to remote machine.\r\n" + e.Message, "Error", 0);
                 throw new ApplicationException(e.Message);
             }
         }
@@ -168,8 +173,9 @@ namespace vExecUtil
             {
                 UpdateOutput("Sending remote command...");
 
-                // Bind scope to ManagementClass using Win32_Process
+                // Create a new Win32_Process ManagementClass
                 _mgmt = new ManagementClass(_scope, new ManagementPath("Win32_Process"), new ObjectGetOptions());
+
                 _inParams = _mgmt.GetMethodParameters("Create");
 
                 /* ******************************************************************************
@@ -182,8 +188,18 @@ namespace vExecUtil
                  *  
                  *******************************************************************************/
 
+                /* Can be run using a hidden window using the SYSTEM account, however any mapped network resources would be unavailable to logged on user
+                 * 
+                 * _inParams["CommandLine"] = "CMD /C " +
+                                                "SCHTASKS /Create /TN \"vexectemp\" /TR \"CMD /C " + RemoteCommand + " > " + CmdTempFile + " 2>&1\" /SC MONTHLY /RU \"SYSTEM\"" +
+                                                CmdPause +
+                                                "SCHTASKS /Run /TN \"vexectemp\"" +
+                                                CmdPause +
+                                                "SCHTASKS /Delete /TN \"vexectemp\" /F";
+                 */
+
                 _inParams["CommandLine"] = "CMD /C " +
-                                                "SCHTASKS /Create /TN \"vexectemp\" /TR \"CMD /C " + RemoteCommand + " > " + CmdTempFile + "\" /SC MONTHLY " + "/RU " + UserName + " /RP " + UserPass +
+                                                "SCHTASKS /Create /TN \"vexectemp\" /TR \"CMD /C " + RemoteCommand + " > " + CmdTempFile + " 2>&1\" /SC MONTHLY /RU " + UserName + " /RP " + UserPass +
                                                 CmdPause +
                                                 "SCHTASKS /Run /TN \"vexectemp\"" + 
                                                 CmdPause +
@@ -204,8 +220,6 @@ namespace vExecUtil
             }
             catch (Exception e)
             {
-                //UpdateOutput("There was a problem sending command to remote machine.\r\n" + e.Message);
-                //MessageBox(new IntPtr(), "There was a problem sending command to remote machine.\r\n" + e.Message, "Error", 0);
                 throw new ApplicationException(e.Message);
             }
         }
@@ -221,8 +235,7 @@ namespace vExecUtil
             }
             catch (Exception e)
             {
-                //UpdateOutput("An Error has occurred.\r\n" + e.Message);
-                MessageBox(new IntPtr(), "An Error has occurred.\r\n" + e.Message, "Error", 0);
+                MessageBox(IntPtr.Zero, "An Error has occurred.\r\n" + e.Message, "Error", 0);
                 return;
             }
         }
@@ -232,9 +245,9 @@ namespace vExecUtil
             try
             {
                 // Cleanup objects and temporary files
-                //_mgmt.Dispose();
-                //_watch.Dispose();
-                //_worker.Dispose();
+                _mgmt.Dispose();
+                _watch.Dispose();
+                _worker.Dispose();
 
                 if (File.Exists(_remotePath + @"\" + CmdTempFileName))
                     File.Delete(_remotePath + @"\" + CmdTempFileName);
@@ -245,10 +258,8 @@ namespace vExecUtil
             }
             catch (Exception e)
             {
-                //UpdateOutput("An Error has occurred.\r\n" + e.Message);
-                MessageBox(new IntPtr(), "An Error has occurred during cleanup.\r\n" + e.Message, "Error", 0);
+                MessageBox(IntPtr.Zero, "An Error has occurred during cleanup.\r\n" + e.Message, "Error", 0);
                 return;
-                //throw new ApplicationException(e.Message);
             }
         }
 
@@ -261,7 +272,7 @@ namespace vExecUtil
             }
             catch (Exception ex)
             {
-                MessageBox(new IntPtr(), "An Error has occurred.\r\n" + ex.Message, "Error", 0);
+                MessageBox(IntPtr.Zero, "An Error has occurred.\r\n" + ex.Message, "Error", 0);
                 return;
             }
         }
