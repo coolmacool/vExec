@@ -247,7 +247,9 @@ namespace vExecUtil
                 // Cleanup objects and temporary files
                 _mgmt.Dispose();
                 _watch.Dispose();
-                _worker.Dispose();
+
+                if (_worker != null)
+                    _worker.Dispose();
 
                 if (File.Exists(_remotePath + @"\" + CmdTempFileName))
                     File.Delete(_remotePath + @"\" + CmdTempFileName);
