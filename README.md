@@ -40,15 +40,16 @@ private void SetOutput(string output)
 	}
 }
 
-//Method to begin remote command execution
 private void button1_Click(object sender, EventArgs e)
 {      
+	Run Method to begin command execution excepts command as string
+	// Excample command: ipconfig
 	ve.Run("ipconfig");
 }
 ```
 For WPF Applications
 ---------------------
-Replace Invoke & Invoke with Dispatcher.CheckAccess() & Dispatcher.Invoke
+Update SetOutput method by replacing InvokeRequired & Invoke with Dispatcher.CheckAccess() & Dispatcher.Invoke
 
 ```c#
 if (!Dispatcher.CheckAccess())
@@ -60,4 +61,30 @@ else
 	txtOutput.Text = output;
 }
 
+```
+
+==================
+Properties
+------------------
+```c#
+string RemoteComputer
+string RemoteCommand
+string UserName
+string UserPass
+string CmdOutput
+```
+
+
+Public Methods
+------------------
+```c#
+void Run(string command)
+```
+
+
+Public Events
+------------------
+```c#
+EventHandler OutputUpdated	// Fires each time the output is updated; including connection logging
+EventHandler CmdFinished	// Fires after the command has completed and output has been collected
 ```
