@@ -8,64 +8,50 @@ Initial work on a C# WMI port for interactive remote command execution
 Allows running of net use command with network resources available to logged on user 
 
 
-Example
+####Example
 --------------------
 
 
 ```c#
-//Instantiation
+// Instantiation
 vExec ve = new vExec("MACHINEADDRESS", "username", "password");
 
-//Delegate for updating UI from output received from OutputUpdated event
-delegate void OutputDelegate(string output);
-
-//Subscribe to OutputUpdated Event
+// Subscribe to OutputUpdated Event
 ve.OutputUpdated += new EventHandler(ve_OutputUpdated);
 
 private void ve_OutputUpdated(object sender, EventArgs e)
 {
-	SetOutput(ve.CmdOutput);
-}
-
-//Method to update UI
-private void SetOutput(string output)
-{
-	if (InvokeRequired)
-	{
-		Invoke(new OutputDelegate(SetOutput), new object[] { output });
-	}
-	else
-	{
-		txtOutput.Text = output;
-	}
+	// Update UI from different thread
+	Invoke((Action)delegate { txtOutput.Text = ve.CmdOutput; });
 }
 
 private void button1_Click(object sender, EventArgs e)
 {      
-	Run Method to begin command execution excepts command as string
+	// Run Method to begin command execution excepts command as string
 	// Excample command: ipconfig
+	
 	ve.Run("ipconfig");
+	
+	//OR
+	// Call the sub methods individually 
+	
+	/* 
+	ve.RemoteCommand = "ipconfig";
+        ve.ConnectWMI();
+        ve.LaunchRemoteProcess();    
+        */
 }
 ```
-For WPF Applications
----------------------
-Update SetOutput method by replacing InvokeRequired & Invoke with Dispatcher.CheckAccess() & Dispatcher.Invoke
+####For WPF Applications
+
+Replace Invoke with Dispatcher.Invoke
 
 ```c#
-if (!Dispatcher.CheckAccess())
-{
-	Dispatcher.Invoke(new outputDelegate(SetOutput), new object[] { output });
-}
-else
-{
-	txtOutput.Text = output;
-}
-
+Dispatcher.Invoke((Action)delegate { txtOutput.Text = ve.CmdOutput; });
 ```
 
 ==================
-Properties
-------------------
+####Properties
 ```c#
 string RemoteComputer
 string RemoteCommand
@@ -75,16 +61,37 @@ string CmdOutput
 ```
 
 
-Public Methods
-------------------
+####Public Methods
 ```c#
-void Run(string command)
+void Run(string command)	// Calls ConnectWMI() & LaunchRemoteProcess()
+```
+Methods for use when wanting to seperate connection and command execution calls
+```c#
+// Makes connection to remote machine 
+void ConnectWMI()
+
+// Creates command prompt process and runs the command provided as param
+void LaunchRemoteProcess()
 ```
 
 
-Public Events
-------------------
+####Public Events
 ```c#
-EventHandler OutputUpdated	// Fires each time the output is updated; including connection logging
-EventHandler CmdFinished	// Fires after the command has completed and output has been collected
+event EventHandler OutputUpdated	// Fires each time the output is updated; including connection logging
+event EventHandler CmdFinished		// Fires after the command has completed and output has been collected
+```
+
+========================
+NetConnect Utility Class
+------------------------
+Uses Windows API to make connection to network resources
+- WNetUseConnection
+- WNetCancelConnection2
+
+```c#
+// Makes connection to UNC path specified and returns Error string
+string ConnectNetResource(string remoteUNC, string username, string password)
+
+// Disconnects mapped network resource at specified UNC path and returns Error string
+string DisconnectNetResource(string remoteUNC)
 ```
