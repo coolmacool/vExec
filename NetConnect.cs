@@ -1,8 +1,8 @@
-﻿using System;
-using System.Runtime.InteropServices;
-
 namespace vExecUtil
 {
+    using System;
+    using System.Runtime.InteropServices;
+
     public class NetConnect
     {
         // Add Win32 API Platform Invoke functionality
@@ -75,27 +75,27 @@ namespace vExecUtil
         // Created with excel formula:
         // ="new ErrorClass("&A1&", """&PROPER(SUBSTITUTE(MID(A1,7,LEN(A1)-6), "_", " "))&"""), "
         private static ErrorClass[] ERROR_LIST = new ErrorClass[] {
-			new ErrorClass(ERROR_ACCESS_DENIED, "Error: Access Denied"), 
-			new ErrorClass(ERROR_ALREADY_ASSIGNED, "Error: Already Assigned"), 
-			new ErrorClass(ERROR_BAD_DEVICE, "Error: Bad Device"), 
-			new ErrorClass(ERROR_BAD_NET_NAME, "Error: Bad Net Name"), 
-			new ErrorClass(ERROR_BAD_PROVIDER, "Error: Bad Provider"), 
-			new ErrorClass(ERROR_CANCELLED, "Error: Cancelled"), 
-			new ErrorClass(ERROR_EXTENDED_ERROR, "Error: Extended Error"), 
-			new ErrorClass(ERROR_INVALID_ADDRESS, "Error: Invalid Address"), 
-			new ErrorClass(ERROR_INVALID_PARAMETER, "Error: Invalid Parameter"), 
-			new ErrorClass(ERROR_INVALID_PASSWORD, "Error: Invalid Password"), 
-			new ErrorClass(ERROR_MORE_DATA, "Error: More Data"), 
-			new ErrorClass(ERROR_NO_MORE_ITEMS, "Error: No More Items"), 
-			new ErrorClass(ERROR_NO_NET_OR_BAD_PATH, "Error: No Net Or Bad Path"), 
-			new ErrorClass(ERROR_NO_NETWORK, "Error: No Network"), 
-			new ErrorClass(ERROR_BAD_PROFILE, "Error: Bad Profile"), 
-			new ErrorClass(ERROR_CANNOT_OPEN_PROFILE, "Error: Cannot Open Profile"), 
-			new ErrorClass(ERROR_DEVICE_IN_USE, "Error: Device In Use"), 
-			new ErrorClass(ERROR_EXTENDED_ERROR, "Error: Extended Error"), 
-			new ErrorClass(ERROR_NOT_CONNECTED, "Error: Not Connected"), 
-			new ErrorClass(ERROR_OPEN_FILES, "Error: Open Files"), 
-		};
+            new ErrorClass(ERROR_ACCESS_DENIED, "Error: Access Denied"), 
+            new ErrorClass(ERROR_ALREADY_ASSIGNED, "Error: Already Assigned"), 
+            new ErrorClass(ERROR_BAD_DEVICE, "Error: Bad Device"), 
+            new ErrorClass(ERROR_BAD_NET_NAME, "Error: Bad Net Name"), 
+            new ErrorClass(ERROR_BAD_PROVIDER, "Error: Bad Provider"), 
+            new ErrorClass(ERROR_CANCELLED, "Error: Cancelled"), 
+            new ErrorClass(ERROR_EXTENDED_ERROR, "Error: Extended Error"), 
+            new ErrorClass(ERROR_INVALID_ADDRESS, "Error: Invalid Address"), 
+            new ErrorClass(ERROR_INVALID_PARAMETER, "Error: Invalid Parameter"), 
+            new ErrorClass(ERROR_INVALID_PASSWORD, "Error: Invalid Password"), 
+            new ErrorClass(ERROR_MORE_DATA, "Error: More Data"), 
+            new ErrorClass(ERROR_NO_MORE_ITEMS, "Error: No More Items"), 
+            new ErrorClass(ERROR_NO_NET_OR_BAD_PATH, "Error: No Net Or Bad Path"), 
+            new ErrorClass(ERROR_NO_NETWORK, "Error: No Network"), 
+            new ErrorClass(ERROR_BAD_PROFILE, "Error: Bad Profile"), 
+            new ErrorClass(ERROR_CANNOT_OPEN_PROFILE, "Error: Cannot Open Profile"), 
+            new ErrorClass(ERROR_DEVICE_IN_USE, "Error: Device In Use"), 
+            new ErrorClass(ERROR_EXTENDED_ERROR, "Error: Extended Error"), 
+            new ErrorClass(ERROR_NOT_CONNECTED, "Error: Not Connected"), 
+            new ErrorClass(ERROR_OPEN_FILES, "Error: Open Files"), 
+        };
 
         private static string getErrorForNumber(int errNum)
         {
@@ -103,6 +103,7 @@ namespace vExecUtil
             {
                 if (er.num == errNum) return er.message;
             }
+
             return "Error: Unknown, " + errNum;
         }
         #endregion
@@ -118,14 +119,14 @@ namespace vExecUtil
             string lpAccessName,
             string lpBufferSize,
             string lpResult
-            );
+        );
 
         [DllImport("Mpr.dll")]
         private static extern int WNetCancelConnection2(
             string lpName,
             int dwFlags,
             bool fForce
-            );
+        );
 
         [StructLayout(LayoutKind.Sequential)]
         private class NETRESOURCE
@@ -154,9 +155,8 @@ namespace vExecUtil
             ret = WNetUseConnection(IntPtr.Zero, nr, password, username, 0, null, null, null);
 
             if (ret == NO_ERROR)
-            {
                 return null;
-            }
+
             return getErrorForNumber(ret);
         }
 
@@ -164,9 +164,8 @@ namespace vExecUtil
         {
             int ret = WNetCancelConnection2(remoteUNC, CONNECT_UPDATE_PROFILE, false);
             if (ret == NO_ERROR)
-            {
                 return null;
-            }
+
             return getErrorForNumber(ret);
         }
 
