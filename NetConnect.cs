@@ -72,8 +72,6 @@ namespace vExecUtil
         }
 
 
-        // Created with excel formula:
-        // ="new ErrorClass("&A1&", """&PROPER(SUBSTITUTE(MID(A1,7,LEN(A1)-6), "_", " "))&"""), "
         private static ErrorClass[] ERROR_LIST = new ErrorClass[] {
             new ErrorClass(ERROR_ACCESS_DENIED, "Error: Access Denied"), 
             new ErrorClass(ERROR_ALREADY_ASSIGNED, "Error: Already Assigned"), 
