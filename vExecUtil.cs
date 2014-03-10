@@ -12,6 +12,7 @@ namespace vExecUtil
         [DllImport("user32.dll", CharSet = CharSet.Unicode)]
         private static extern int MessageBox(IntPtr hWnd, String text, String caption, uint type);
 
+
         /**************
          * CONSTANTS
          *************/
@@ -24,15 +25,16 @@ namespace vExecUtil
         /**************
         * FIELDS
         **************/
-        private string _remotePath;
         private string _cmdOutput;
+        private string _remotePath;
         private ConnectionOptions _conOptions;
-        private ManagementScope _scope;
         private ManagementClass _mgmt;
+        private ManagementScope _scope;
         private ManagementBaseObject _inParams;
         private ManagementBaseObject _outParams;
         private FileSystemWatcher _watch;
         private BackgroundWorker _worker;
+
 
         /**************
         * CONSTRUCTORS
@@ -64,7 +66,7 @@ namespace vExecUtil
         * DELEGATES
         **************/
         // Delegate for command output file creation event to read file
-        protected virtual void OnOutputCreated(object sender, FileSystemEventArgs e)
+        protected virtual void OnOutputFileCreated(object sender, FileSystemEventArgs e)
         {
             try
             {
@@ -119,7 +121,7 @@ namespace vExecUtil
         public string RemoteComputer { get; set; }
         public string RemoteCommand { get; set; }
         public string UserName { get; set; }
-        public string UserPass { get; set; }
+        public string UserPass { protected get; set; }
         public string CmdOutput { get { return _cmdOutput; } }
         
 
@@ -157,7 +159,7 @@ namespace vExecUtil
                     NotifyFilter = NotifyFilters.FileName | NotifyFilters.DirectoryName | NotifyFilters.CreationTime | NotifyFilters.LastWrite | NotifyFilters.LastAccess,
                     EnableRaisingEvents = true
                 };
-                _watch.Changed += new FileSystemEventHandler(OnOutputCreated);
+                _watch.Changed += new FileSystemEventHandler(OnOutputFileCreated);
 
                 UpdateOutput("Connected successfully.");
             }
@@ -189,13 +191,10 @@ namespace vExecUtil
                  *******************************************************************************/
 
                 /* Can be run using a hidden window using the SYSTEM account, however any mapped network resources would be unavailable to logged on user
-                 * 
-                 * _inParams["CommandLine"] = "CMD /C " +
-                                                "SCHTASKS /Create /TN \"vexectemp\" /TR \"CMD /C " + RemoteCommand + " > " + CmdTempFile + " 2>&1\" /SC MONTHLY /RU \"SYSTEM\"" +
-                                                CmdPause +
-                                                "SCHTASKS /Run /TN \"vexectemp\"" +
-                                                CmdPause +
-                                                "SCHTASKS /Delete /TN \"vexectemp\" /F";
+                 * Change /RU switch:
+                 *       
+                 *              /RU "SYSTEM"
+                 *              
                  */
 
                 _inParams["CommandLine"] = "CMD /C " +
@@ -245,8 +244,11 @@ namespace vExecUtil
             try
             {
                 // Cleanup objects and temporary files
-                _mgmt.Dispose();
-                _watch.Dispose();
+                if (_mgmt != null)    
+                    _mgmt.Dispose();
+
+                if (_watch != null)
+                    _watch.Dispose();
 
                 if (_worker != null)
                     _worker.Dispose();
@@ -282,9 +284,7 @@ namespace vExecUtil
         private void UpdateOutput(string updatedOutput, bool resetOutput = false)
         {
             if (resetOutput)
-            {
                 _cmdOutput = "";
-            }
 
             // Update the output and raise notify event
             _cmdOutput += updatedOutput + "\r\n";
