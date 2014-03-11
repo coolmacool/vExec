@@ -3,7 +3,7 @@ namespace vExecUtil
     using System;
     using System.Runtime.InteropServices;
 
-    public class NetConnect
+    public static class NetConnect
     {
         // Add Win32 API Platform Invoke functionality
         #region Consts
