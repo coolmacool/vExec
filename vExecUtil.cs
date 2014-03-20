@@ -39,26 +39,18 @@ namespace vExecUtil
         /**************
         * CONSTRUCTORS
         **************/
-        public vExec() { }
+        public vExec() { new vExec(null, null, null); }
 
-        public vExec(string remoteComputer)
-        {
-            RemoteComputer = remoteComputer;
-            UserName = UserPass = String.Empty;
-        }
+        public vExec(string remoteComputer) { new vExec(remoteComputer, null, null); }
 
-        public vExec(string remoteComputer, string userName)
-        {
-            RemoteComputer = remoteComputer;
-            UserName = userName;
-            UserPass = String.Empty;
-        }
+        public vExec(string remoteComputer, string userName) { new vExec(remoteComputer, userName, null); }
 
         public vExec(string remoteComputer, string userName, string userPass)
         {
             RemoteComputer = remoteComputer;
             UserName = userName;
             UserPass = userPass;
+            CleanUp();
         }
 
 
